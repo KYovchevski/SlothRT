@@ -21,6 +21,11 @@ Triangle::Triangle(float3 a_A, float3 a_B, float3 a_C)
     CalculateBoundingBox();
 }
 
+float3 Triangle::GetDataAtIntersection(float3 a_IntersectionPoint)
+{
+    return m_Normal;
+}
+
 void Triangle::CalculateBoundingBox()
 {
     float fmin = std::numeric_limits<float>::lowest();

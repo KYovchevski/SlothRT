@@ -33,4 +33,5 @@
 
 Project/.vs
 Project/*.gitignore
-Project/x64/*
+Project/x64/Release/*
+Project/x64/Debug/*

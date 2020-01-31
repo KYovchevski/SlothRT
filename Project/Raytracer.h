@@ -15,6 +15,8 @@ public:
 
     void UpdateKeyState(int a_Key, int a_State);
 
+    void DebugRay(float2 a_ScreenPos);
+
 private:
 
     void ProcessInput();

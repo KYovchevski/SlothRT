@@ -14,10 +14,10 @@ public:
     virtual void Construct(std::vector<Hitable*> a_Hitables) = 0;
     virtual void Construct(std::vector<std::unique_ptr<Hitable>>& a_Hitables) = 0;
 
+
     void SetTransform(mat4 a_Transform);
 
 protected:
 
-    mat4 m_InverseTransform;
 };
 

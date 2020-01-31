@@ -45,6 +45,12 @@ void Game::Tick( float deltaTime )
     
 }
 
+void Game::MouseDown(int button)
+{
+    raytracer.DebugRay(m_MousePos);
+    std::cout << m_MousePos.x << ", " << m_MousePos.y << std::endl;
+}
+
 void Game::KeyUp(int a_Key)
 {
     raytracer.UpdateKeyState(a_Key, GLFW_RELEASE);

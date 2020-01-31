@@ -22,10 +22,31 @@ void BVHBranch::Construct(std::vector<Hitable*> a_Hitables)
         hmin = hitable->GetBoundingBox()->GetMinExtent();
         hmax = hitable->GetBoundingBox()->GetMaxExtent();
 
-        for (size_t i = 0; i < 3; i++)
+        float3 boxPoints[8];
+        boxPoints[0] = { hmin.x, hmin.y, hmin.z };
+        boxPoints[1] = { hmin.x, hmin.y, hmax.z };
+        boxPoints[2] = { hmin.x, hmax.y, hmin.z };
+        boxPoints[3] = { hmin.x, hmax.y, hmax.z };
+        boxPoints[4] = { hmax.x, hmin.y, hmin.z };
+        boxPoints[5] = { hmax.x, hmin.y, hmax.z };
+        boxPoints[6] = { hmax.x, hmax.y, hmin.z };
+        boxPoints[7] = { hmax.x, hmax.y, hmax.z };
+
+        for (size_t j = 0; j < 8; j++)
         {
-            min.v[i] = std::min(hmin.v[i], min.v[i]);
-            max.v[i] = std::max(hmax.v[i], max.v[i]);
+            mat4 transform = hitable->GetTransform();
+
+            if (transform != mat4::Identity())
+            {
+                std::cout << "l" << std::endl;
+            }
+
+            float3 point = transform.TransformPoint(boxPoints[j]);
+            for (size_t i = 0; i < 3; i++)
+            {
+                min.v[i] = std::min(point.v[i], min.v[i]);
+                max.v[i] = std::max(point.v[i], max.v[i]);
+            }
         }
     }
 
@@ -99,31 +120,40 @@ Hitable* BVHBranch::Intersect(Ray& a_Ray, float& a_Dist)
     float leftDist = std::numeric_limits<float>::max();
     float rightDist = std::numeric_limits<float>::max();
 
-    bool leftHit  = m_Left->GetBoundingBox()->Intersect(transformedRay, leftDist)  ;// || m_Left->GetBoundingBox()->ContainsPoint(a_Ray.m_Origin);
-    bool rightHit = m_Right->GetBoundingBox()->Intersect(transformedRay, rightDist);// || m_Right->GetBoundingBox()->ContainsPoint(a_Ray.m_Origin);
+    bool leftHit  = m_Left->GetBoundingBox()->Intersect(transformedRay, leftDist);
+    bool rightHit = m_Right->GetBoundingBox()->Intersect(transformedRay, rightDist);
 
     Hitable* hit = nullptr;
 
     switch (leftHit + rightHit)
     {
     case 2:
-        if (leftDist < rightDist)
+    {
+        float dist1 = a_Dist, dist2 = a_Dist;
+        Hitable* hit1 = nullptr, * hit2 = nullptr;
+
+        hit1 = m_Left->Intersect(transformedRay, dist1);
+        hit2 = m_Right->Intersect(transformedRay, dist2);
+
+        if (dist1 < dist2)
         {
-            hit = m_Left->Intersect(transformedRay, a_Dist);
-            if (!hit)
+            if (hit1)
             {
-                hit = m_Right->Intersect(transformedRay, a_Dist);
+                hit = hit1;
+                a_Dist = dist1;
             }
         }
         else
         {
-            hit = m_Right->Intersect(transformedRay, a_Dist);
-            if (!hit)
+            if (hit2)
             {
-                hit = m_Left->Intersect(transformedRay, a_Dist);
+                hit = hit2;
+                a_Dist = dist2;
             }
         }
+
         break;
+    }
     case 1:
         if (leftHit)
         {
@@ -133,6 +163,8 @@ Hitable* BVHBranch::Intersect(Ray& a_Ray, float& a_Dist)
         {
             hit = m_Right->Intersect(transformedRay, a_Dist);
         }
+
+
         break;
     case 0:
         break;
@@ -140,6 +172,7 @@ Hitable* BVHBranch::Intersect(Ray& a_Ray, float& a_Dist)
         std::cout << "how the living fuck you got here?" << std::endl;
         abort();
     }
+
 
     return hit;
 

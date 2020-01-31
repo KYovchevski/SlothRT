@@ -22,16 +22,24 @@ Color Scene::TraceRay(Ray& a_Ray)
 
     hit = m_BVHRoot->Intersect(a_Ray, dist);
 
+
+
     if (hit)
     {
-        pixel = hit->GetColor();
+        float3 hitPoint = a_Ray.m_Origin + a_Ray.m_Direction * dist;
+
+        float3 normal = hit->GetDataAtIntersection(hitPoint);
+        pixel.r = static_cast<uint8_t>((normal.x * 0.5f + 0.5f) * 255.0f);
+        pixel.g = static_cast<uint8_t>((normal.y * 0.5f + 0.5f) * 255.0f);
+        pixel.b = static_cast<uint8_t>((normal.z * 0.5f + 0.5f) * 255.0f);
+        pixel.a = 255;
     }
     else
     {
-            pixel.rgb[0] = 0;
-            pixel.rgb[1] = 0;
-            pixel.rgb[2] = 0;
-            pixel.rgb[3] = 0;
+        pixel.rgb[0] = 0;
+        pixel.rgb[1] = 0;
+        pixel.rgb[2] = 0;
+        pixel.rgb[3] = 0;
             
     }
 
@@ -40,7 +48,7 @@ Color Scene::TraceRay(Ray& a_Ray)
 
 void Scene::ConstructBvh()
 {
-    if (m_Hitables.size() < g_NumHitablesPerNode)
+    if (m_Hitables.size() <= g_NumHitablesPerNode)
         m_BVHRoot = std::make_unique<BVHLeaf>();
     else
         m_BVHRoot = std::make_unique<BVHBranch>();

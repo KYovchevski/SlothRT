@@ -14,7 +14,7 @@ public:
 
     Hitable* Intersect(Ray& a_Ray, float& a_Dist) override;
 
-    Color GetColor() const override { return Color(255, 0, 255); };
+    Color GetColor() const override { return Color(255, 255, 255); };
 
 private:
 

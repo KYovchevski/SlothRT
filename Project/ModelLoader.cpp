@@ -221,7 +221,7 @@ Mesh* ModelLoader::LoadMesh(std::string a_FilePath, mat4 a_Transform)
 
     for (size_t i = 0; i < indices.size(); i += 3)
     {
-        m->m_Hitables.push_back(std::make_unique<Triangle>(positions[indices[i]], positions[indices[i + 1]], positions[indices[i + 2]]));
+        m->m_Hitables.push_back(std::make_unique<Triangle>(positions[indices[i + 0]], positions[indices[i + 1]], positions[indices[i + 2]]));
     }
 
     //m.m_FilePath = a_FilePath;

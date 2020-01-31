@@ -9,7 +9,9 @@ public:
 
     void SetColor(Color a_Color) { m_Color = a_Color; }
 
-    Color GetColor() const override final { return m_Color; } 
+    Color GetColor() const override final { return m_Color; }
+
+    float3 GetDataAtIntersection(float3 a_IntersectionPoint) override;
 
 
     void CalculateBoundingBox() override;
