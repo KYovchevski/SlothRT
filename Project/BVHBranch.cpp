@@ -99,8 +99,8 @@ Hitable* BVHBranch::Intersect(Ray& a_Ray, float& a_Dist)
     float leftDist = std::numeric_limits<float>::max();
     float rightDist = std::numeric_limits<float>::max();
 
-    bool leftHit  = m_Left->GetBoundingBox()->Intersect(transformedRay, leftDist);
-    bool rightHit = m_Right->GetBoundingBox()->Intersect(transformedRay, rightDist);
+    bool leftHit  = m_Left->GetBoundingBox()->Intersect(transformedRay, leftDist)  ;// || m_Left->GetBoundingBox()->ContainsPoint(a_Ray.m_Origin);
+    bool rightHit = m_Right->GetBoundingBox()->Intersect(transformedRay, rightDist);// || m_Right->GetBoundingBox()->ContainsPoint(a_Ray.m_Origin);
 
     Hitable* hit = nullptr;
 

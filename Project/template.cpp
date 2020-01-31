@@ -42,8 +42,14 @@ void ReshapeWindowCallback( GLFWwindow* window, int w, int h )
 void KeyEventCallback( GLFWwindow* window, int key, int scancode, int action, int mods )
 {
 	if (key == GLFW_KEY_ESCAPE) running = false;
-	if (action == GLFW_PRESS) if (game) game->KeyDown( key );
-	else if (action == GLFW_RELEASE) if (game) game->KeyUp( key );
+    if (action == GLFW_PRESS)
+    {
+        if (game) game->KeyDown(key);
+    }
+	else if (action == GLFW_RELEASE)
+    {
+        if (game) game->KeyUp(key);
+    }
 }
 void CharEventCallback( GLFWwindow* window, uint code ) { /* nothing here yet */ }
 void WindowFocusCallback( GLFWwindow* window, int focused ) { hasFocus = (focused == GL_TRUE); }

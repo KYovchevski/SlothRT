@@ -5,6 +5,7 @@
 Raytracer::Raytracer(unsigned short a_Width, unsigned short a_Height)
     : m_Width(a_Width)
     , m_Height(a_Height)
+    , m_CamPos({ 0.0f, 0.0f, 0.0f + 200.0f })
 {
     m_Data = new Color[static_cast<int>(m_Width) * static_cast<int>(m_Height)];
 
@@ -58,17 +59,21 @@ Raytracer::Raytracer(unsigned short a_Width, unsigned short a_Height)
 
 void Raytracer::Render()
 {
+    ProcessInput();
     for (unsigned short x = 0; x < m_Width; ++x)
     {
         for (unsigned short  y = 0; y < m_Height; y++)
         {
             Color* pixel = &m_Data[y * m_Width + x];
 
-            Ray ray(float3{ static_cast<float>(x), static_cast<float>(y), -100.0f }, float3{ 0.0f, 0.0f, 1.0f });
+            float3 dir = float3{ static_cast<float>(x - m_Width / 2), static_cast<float>(m_Height / 2 - y), -100.0f };
+            dir = normalize(dir);
+
+            Ray ray(m_CamPos, dir);
 
             *pixel = m_Scene.TraceRay(ray);
 
-
+            
         }
     }
     
@@ -77,4 +82,35 @@ void Raytracer::Render()
 void Raytracer::Present(Surface* a_Screen)
 {
     m_Sprite->Draw(a_Screen, 0, 0);
+}
+
+void Raytracer::ProcessInput()
+{
+    if (IsKeyPressed(GLFW_KEY_A))
+    {
+        m_CamPos += float3{ -1.0f, 0.0f, 0.0f };
+    }
+    if (IsKeyPressed(GLFW_KEY_D))
+    {
+        m_CamPos += float3{ 1.0f, 0.0f, 0.0f };
+    }
+
+    if (IsKeyPressed(GLFW_KEY_W))
+    {
+        m_CamPos += float3{ 0.0f, 0.0f, -1.0f };
+    }
+    if (IsKeyPressed(GLFW_KEY_S))
+    {
+        m_CamPos += float3{ 0.0f, 0.0f, 1.0f };
+    }
+
+
+    if (IsKeyPressed(GLFW_KEY_Q))
+    {
+        m_CamPos += float3{ 0.0f, -1.0f, 0.0f };
+    }
+    if (IsKeyPressed(GLFW_KEY_E))
+    {
+        m_CamPos += float3{ 0.0f, 1.0f, 0.0f };
+    }
 }

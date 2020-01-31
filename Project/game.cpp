@@ -32,6 +32,8 @@ static Raytracer raytracer(520, 400);
 // -----------------------------------------------------------
 void Game::Tick( float deltaTime )
 {
+
+    GetKeyState(GLFW_KEY_W);
 	// clear the graphics window
 	screen->Clear( 0 );
 	// print something in the graphics window
@@ -39,4 +41,16 @@ void Game::Tick( float deltaTime )
 	// draw a sprite
     raytracer.Render();
     raytracer.Present(screen);
+
+    
+}
+
+void Game::KeyUp(int a_Key)
+{
+    raytracer.UpdateKeyState(a_Key, GLFW_RELEASE);
+}
+
+void Game::KeyDown(int a_Key)
+{
+    raytracer.UpdateKeyState(a_Key, GLFW_PRESS);
 }

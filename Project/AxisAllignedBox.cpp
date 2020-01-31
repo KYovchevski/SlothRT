@@ -56,10 +56,23 @@ bool AxisAllignedBox::Intersect(Ray& a_Ray, float& a_Dist) const
     }
 
     // If the AABB is closer than the previous closest intersection, modify the intersection data
-    if (a_Dist > nearDist && nearDist > 0)
+    if (a_Dist > nearDist && (nearDist > 0 || (nearDist <= 0 && farDist > 0)))
     {
         a_Dist = nearDist;
         return true;
     }
     return false;
+}
+
+bool AxisAllignedBox::ContainsPoint(float3 a_Point) const
+{
+    for (size_t i = 0; i < 3; i++)
+    {
+        if (a_Point.v[i] < m_Min.v[i] || a_Point.v[i] > m_Max.v[i])
+        {
+            return false;
+        }
+    }
+
+    return true;
 }

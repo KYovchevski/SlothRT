@@ -13,7 +13,19 @@ public:
 
     void Present(Surface* a_Screen);
 
+    void UpdateKeyState(int a_Key, int a_State);
+
 private:
+
+    void ProcessInput();
+
+    bool IsKeyPressed(int a_Key) { return m_KeyStates[a_Key] == GLFW_PRESS; }
+
+    float3 m_CamPos;
+
+    std::map<int, int> m_KeyStates;
+
+
 
     ModelLoader m_MeshLoader;
 
@@ -27,4 +39,9 @@ private:
     Surface* m_Surface;
     Sprite* m_Sprite;
 };
+
+inline void Raytracer::UpdateKeyState(int a_Key, int a_State)
+{
+    m_KeyStates[a_Key] = a_State;
+}
 
