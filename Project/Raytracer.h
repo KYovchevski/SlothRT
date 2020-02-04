@@ -27,7 +27,7 @@ private:
 
     std::map<int, int> m_KeyStates;
 
-
+    std::chrono::high_resolution_clock::time_point m_LastFrame;
 
     ModelLoader m_MeshLoader;
 

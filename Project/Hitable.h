@@ -5,12 +5,17 @@
 
 struct Ray;
 
+class BVHNode;
+
 class Hitable
 {
 public:
     Hitable();
 
+    virtual void SetParent(BVHNode* a_Parent) {};
+
     virtual Hitable* Intersect(Ray& a_Ray, float& a_Dist) = 0;
+    virtual bool ShadowRayIntersect(Ray& a_Ray, float a_MaxDist) = 0;
 
     virtual void CalculateBoundingBox() = 0;
 
@@ -22,6 +27,8 @@ public:
 
     mat4 GetTransform() const { return m_Transform; };
     mat4 GetInverseTransform() const { return m_InverseTransform; }
+
+    
 protected:
 
     mat4 m_Transform;

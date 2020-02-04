@@ -16,6 +16,7 @@ public:
 
     void CalculateBoundingBox() override;
     Hitable* Intersect(Ray& a_Ray, float& a_Dist) override final;
+    bool ShadowRayIntersect(Ray& a_Ray, float a_MaxDist) override;
 
 private:
     Color m_Color;

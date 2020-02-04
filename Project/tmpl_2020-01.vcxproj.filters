@@ -50,6 +50,7 @@
     <ClCompile Include="ModelLoader.cpp">
       <Filter>Raytracing</Filter>
     </ClCompile>
+    <ClCompile Include="Light.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game.h" />
@@ -93,6 +94,7 @@
     <ClInclude Include="ModelLoader.h">
       <Filter>Raytracing</Filter>
     </ClInclude>
+    <ClInclude Include="Light.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="template code">

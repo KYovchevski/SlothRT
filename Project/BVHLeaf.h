@@ -5,14 +5,17 @@ class BVHLeaf : public BVHNode
 {
 public:
 
-    BVHLeaf();
+    BVHLeaf(BVHNode* a_Parent);
 
     void Construct(std::vector<Hitable*> a_Hitables) override;
     void Construct(std::vector<std::unique_ptr<Hitable>>& a_Hitables) override;
 
     void CalculateBoundingBox() override;
 
+    bool Refit();
+
     Hitable* Intersect(Ray& a_Ray, float& a_Dist) override;
+    bool ShadowRayIntersect(Ray& a_Ray, float a_MaxDist) override;
 
     Color GetColor() const override { return Color(255, 0, 255, 0); };
 

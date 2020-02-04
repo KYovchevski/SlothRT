@@ -25,7 +25,7 @@ void Game::Shutdown()
 {
 }
 
-static Raytracer raytracer(520, 400);
+static Raytracer raytracer(512, 512);
 
 // -----------------------------------------------------------
 // Main application tick function

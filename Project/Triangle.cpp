@@ -96,3 +96,8 @@ Hitable* Triangle::Intersect(Ray& a_Ray, float& a_Dist)
     }
     return nullptr;
 }
+
+bool Triangle::ShadowRayIntersect(Ray& a_Ray, float a_MaxDist)
+{
+    return Intersect(a_Ray, a_MaxDist) != nullptr;
+}

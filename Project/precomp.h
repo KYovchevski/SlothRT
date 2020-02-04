@@ -9,7 +9,7 @@
 
 // Default screen resolution
 #define SCRWIDTH 512
-#define SCRHEIGHT 384
+#define SCRHEIGHT 512
 
 // C++ headers
 #include <chrono>

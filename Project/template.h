@@ -808,7 +808,7 @@ public:
 			cell[4] * v.x + cell[5] * v.y + cell[6] * v.z + cell[7],
 			cell[8] * v.x + cell[9] * v.y + cell[10] * v.z + cell[11] );
 		const float w = cell[12] * v.x + cell[13] * v.y + cell[14] * v.z + cell[15];
-		if (w == 1) return res;
+		//if (w == 1) return res;
 		return res * (1.f / w);
 	}
 };

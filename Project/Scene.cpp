@@ -11,18 +11,11 @@ Color Scene::TraceRay(Ray& a_Ray)
 
 
 
-    float dist = std::numeric_limits<float>::max();
-    Hitable* hit = nullptr;
 
     float3 origin = a_Ray.m_Origin;
-    if (origin.x == 240 & origin.y == 240)
-    {
-        std::cout << "k" << std::endl;
-    }
+    float dist = std::numeric_limits<float>::max();
 
-    hit = m_BVHRoot->Intersect(a_Ray, dist);
-
-
+    Hitable* hit = CastRay(a_Ray, dist);
 
     if (hit)
     {
@@ -33,12 +26,26 @@ Color Scene::TraceRay(Ray& a_Ray)
         pixel.g = static_cast<uint8_t>((normal.y * 0.5f + 0.5f) * 255.0f);
         pixel.b = static_cast<uint8_t>((normal.z * 0.5f + 0.5f) * 255.0f);
         pixel.a = 255;
+
+        Ray shadowRay = m_Lights[0]->GetShadowRay(hitPoint);
+
+        float shadowRayDist = length(m_Lights[0]->GetPosition() - shadowRay.m_Origin);
+        float ndotl = 0.0f;
+        if (!CastShadowRay(shadowRay, shadowRayDist))
+        {
+            ndotl = clamp(dot(normal, shadowRay.m_Direction), 0.0f, 1.0f);
+        }
+
+        pixel.r *= ndotl;
+        pixel.g *= ndotl;
+        pixel.b *= ndotl;
+
     }
     else
     {
-        pixel.rgb[0] = 0;
-        pixel.rgb[1] = 0;
-        pixel.rgb[2] = 0;
+        pixel.rgb[0] = 255;
+        pixel.rgb[1] = 255;
+        pixel.rgb[2] = 255;
         pixel.rgb[3] = 0;
             
     }
@@ -46,17 +53,37 @@ Color Scene::TraceRay(Ray& a_Ray)
     return pixel;
 }
 
+Hitable* Scene::CastRay(Ray& a_Ray, float& a_Dist)
+{
+
+    Hitable* hit = nullptr;
+    hit = m_BVHRoot->Intersect(a_Ray, a_Dist);
+
+    return hit;
+}
+
+bool Scene::CastShadowRay(Ray& a_Ray, float a_MaxDist)
+{
+    return m_BVHRoot->ShadowRayIntersect(a_Ray, a_MaxDist);
+}
+
 void Scene::ConstructBvh()
 {
     if (m_Hitables.size() <= g_NumHitablesPerNode)
-        m_BVHRoot = std::make_unique<BVHLeaf>();
+        m_BVHRoot = std::make_unique<BVHLeaf>(nullptr);
     else
-        m_BVHRoot = std::make_unique<BVHBranch>();
+        m_BVHRoot = std::make_unique<BVHBranch>(nullptr);
 
     m_BVHRoot->Construct(m_Hitables);
 }
 
+
 void Scene::AddHitable(Hitable& a_Triangle)
 {
     m_Hitables.push_back(&a_Triangle);
+}
+
+void Scene::AddLight(Light& a_Light)
+{
+    m_Lights.push_back(&a_Light);
 }

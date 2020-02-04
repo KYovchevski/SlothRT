@@ -1,13 +1,18 @@
 #include "precomp.h"
 #include "BVHLeaf.h"
 
-BVHLeaf::BVHLeaf()
+BVHLeaf::BVHLeaf(BVHNode* a_Parent)
+    : BVHNode(a_Parent)
 {
 }
 
 void BVHLeaf::Construct(std::vector<Hitable*> a_Hitables)
 {
     m_Hitables = a_Hitables;
+    for (auto element : m_Hitables)
+    {
+        element->SetParent(this);
+    }
     CalculateBoundingBox();
 }
 
@@ -18,6 +23,7 @@ void BVHLeaf::Construct(std::vector<std::unique_ptr<Hitable>>& a_Hitables)
     for (auto& hitable : a_Hitables)
     {
         hitables.push_back(hitable.get());
+        hitable->SetParent(this);
     }
 
     Construct(hitables);
@@ -47,16 +53,45 @@ void BVHLeaf::CalculateBoundingBox()
     m_Box = std::make_unique<AxisAllignedBox>(min, max);
 }
 
+bool BVHLeaf::Refit()
+{
+    __m128 &currMin = m_Box->GetF4MinExtent(), &currMax = m_Box->GetF4MaxExtent();
+    __m128 newMin = currMin, newMax = currMax;
+
+    for (Hitable* hitable : m_Hitables)
+    {
+        newMin = _mm_min_ps(newMin, hitable->GetBoundingBox()->GetF4MinExtent());
+        newMax = _mm_max_ps(newMax, hitable->GetBoundingBox()->GetF4MaxExtent());
+    }
+
+    bool toRefit = false;
+    for (size_t i = 0; i < 3; i++)
+    {
+        if (newMin.m128_f32[i] != currMin.m128_f32[i] || newMax.m128_f32[i] != currMax.m128_f32[i])
+        {
+            toRefit = true;
+            break;
+        }   
+    }
+
+    if (toRefit)
+    {
+        m_Box->SetExtents(newMin, newMax);
+        m_Parent->Refit();
+        return true;
+    }
+
+    return false;
+}
+
 Hitable* BVHLeaf::Intersect(Ray& a_Ray, float& a_Dist)
 {
-    auto transformedOrigin = m_InverseTransform.TransformPoint(a_Ray.m_Origin);
-    auto transformedDirection = m_InverseTransform.TransformVector(a_Ray.m_Direction);
-
-    Ray transformedRay(transformedOrigin, transformedDirection);
     Hitable* hit = nullptr;
 
     for (Hitable* hitable : m_Hitables)
     {
+        Ray transformedRay = a_Ray;
+        transformedRay.Transform(hitable->GetInverseTransform());
         Hitable* newHit = hitable->Intersect(transformedRay, a_Dist);
 
         if (newHit)
@@ -66,4 +101,21 @@ Hitable* BVHLeaf::Intersect(Ray& a_Ray, float& a_Dist)
     }
 
     return hit;
+}
+
+bool BVHLeaf::ShadowRayIntersect(Ray& a_Ray, float a_MaxDist)
+{
+
+    for (Hitable* hitable : m_Hitables)
+    {
+        Ray transformedRay = a_Ray;
+        transformedRay.Transform(hitable->GetInverseTransform());
+        bool hit = hitable->ShadowRayIntersect(transformedRay, a_MaxDist);
+
+        if (hit)
+        {
+            return true;
+        }
+    }
+    return false;
 }

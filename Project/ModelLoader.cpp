@@ -225,7 +225,7 @@ Mesh* ModelLoader::LoadMesh(std::string a_FilePath, mat4 a_Transform)
     }
 
     //m.m_FilePath = a_FilePath;
-    m->m_BVHRoot = std::make_unique<BVHBranch>();
+    m->m_BVHRoot = std::make_unique<BVHBranch>(nullptr);
     m->m_BVHRoot->Construct(m->m_Hitables);
     //auto pair = std::make_pair<std::string, Mesh>(std::move(a_FilePath), std::move(m);
     m_LoadedMeshes.emplace(a_FilePath, std::unique_ptr<Mesh>(m));
