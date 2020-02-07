@@ -7,7 +7,7 @@ class Scene
 {
 public:
     Color TraceRay(Ray& a_Ray);
-    Hitable* CastRay(Ray& a_Ray, float& a_Dist);
+    Intersection CastRay(Ray& a_Ray, float& a_Dist);
     bool CastShadowRay(Ray& a_Ray, float a_MaxDist);
 
     void AddHitable(Hitable& a_Triangle);

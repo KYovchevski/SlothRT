@@ -10,11 +10,11 @@ public:
     void Construct(std::vector<Hitable*> a_Hitables) override;
     void Construct(std::vector<std::unique_ptr<Hitable>>& a_Hitables) override;
 
-    void CalculateBoundingBox() override;
+    void CalculateBoundingBox(mat4 a_Transform) override;
 
     bool Refit();
 
-    Hitable* Intersect(Ray& a_Ray, float& a_Dist) override;
+    Intersection Intersect(Ray& a_Ray, float& a_Dist) override;
     bool ShadowRayIntersect(Ray& a_Ray, float a_MaxDist) override;
 
     Color GetColor() const override { return Color(255, 0, 255, 0); };

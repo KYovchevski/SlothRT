@@ -11,7 +11,9 @@ class BVHNode : public  Hitable
 {
 public:
 
-    BVHNode(BVHNode* a_Parent) : m_Parent(a_Parent) {};
+    BVHNode(BVHNode* a_Parent)
+        : Hitable()
+        , m_Parent(a_Parent) {};
 
     void SetParent(BVHNode* a_Parent) override;
 

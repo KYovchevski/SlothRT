@@ -51,6 +51,7 @@
       <Filter>Raytracing</Filter>
     </ClCompile>
     <ClCompile Include="Light.cpp" />
+    <ClCompile Include="MeshInstance.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game.h" />
@@ -95,6 +96,7 @@
       <Filter>Raytracing</Filter>
     </ClInclude>
     <ClInclude Include="Light.h" />
+    <ClInclude Include="MeshInstance.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="template code">

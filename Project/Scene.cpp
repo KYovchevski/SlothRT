@@ -15,13 +15,19 @@ Color Scene::TraceRay(Ray& a_Ray)
     float3 origin = a_Ray.m_Origin;
     float dist = std::numeric_limits<float>::max();
 
-    Hitable* hit = CastRay(a_Ray, dist);
+    Intersection hit = CastRay(a_Ray, dist);
 
-    if (hit)
+    if (hit.m_Hit)
     {
         float3 hitPoint = a_Ray.m_Origin + a_Ray.m_Direction * dist;
 
-        float3 normal = hit->GetDataAtIntersection(hitPoint);
+        float3 normal = hit.m_Hit->GetDataAtIntersection(hitPoint);
+
+        if (hit.m_InverseTransform != nullptr)
+        {
+            normal = hit.m_InverseTransform->Transposed().TransformPoint(normal);            
+        }
+
         pixel.r = static_cast<uint8_t>((normal.x * 0.5f + 0.5f) * 255.0f);
         pixel.g = static_cast<uint8_t>((normal.y * 0.5f + 0.5f) * 255.0f);
         pixel.b = static_cast<uint8_t>((normal.z * 0.5f + 0.5f) * 255.0f);
@@ -53,10 +59,10 @@ Color Scene::TraceRay(Ray& a_Ray)
     return pixel;
 }
 
-Hitable* Scene::CastRay(Ray& a_Ray, float& a_Dist)
+Intersection Scene::CastRay(Ray& a_Ray, float& a_Dist)
 {
 
-    Hitable* hit = nullptr;
+    Intersection hit;
     hit = m_BVHRoot->Intersect(a_Ray, a_Dist);
 
     return hit;

@@ -7,7 +7,8 @@ class AxisAllignedBox// : public Hitable
 {
 public:
 
-    AxisAllignedBox(float3 a_Min, float3 a_Max);
+    
+    AxisAllignedBox(float3 a_Min = { 0.0f, 0.0f, 0.0f }, float3 a_Max = { 0.0f, 0.0f, 0.0f });
     ~AxisAllignedBox() {}
 
     bool Intersect(Ray& a_Ray, float& a_Dist) const;

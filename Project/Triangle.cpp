@@ -18,7 +18,7 @@ Triangle::Triangle(float3 a_A, float3 a_B, float3 a_C)
 
     m_Normal = normalize(cross(v1, v2));
 
-    CalculateBoundingBox();
+    Hitable::CalculateBoundingBox();
 }
 
 float3 Triangle::GetDataAtIntersection(float3 a_IntersectionPoint)
@@ -26,28 +26,57 @@ float3 Triangle::GetDataAtIntersection(float3 a_IntersectionPoint)
     return m_Normal;
 }
 
-void Triangle::CalculateBoundingBox()
+void Triangle::CalculateBoundingBox(mat4 a_Transform)
 {
     float fmin = std::numeric_limits<float>::lowest();
     float fmax = std::numeric_limits<float>::max();
-    float3 min {fmax,fmax,fmax };
-    float3 max {fmin,fmin,fmin };
-    for (size_t i = 0; i < 3; i++)
-    {
-        for (size_t j = 0; j < 3; j++)
-        {
-            min.v[j] = std::min(min.v[j], points[i].v[j]);
-            max.v[j] = std::max(max.v[j], points[i].v[j]);
-        }
-    }
 
-    m_Box = std::make_unique<AxisAllignedBox>(min, max);
+
+    union
+    {
+        struct {
+            float3 min;
+            float padding;
+            float3 max;
+            float padding1;
+        };
+
+        struct
+        {
+            __m128 f4min, f4max;
+        };
+    };
+
+    min = { fmax, fmax, fmax };
+    max = { fmin, fmin, fmin };
+
+    for (size_t i = 0; i < 3; i++)
+        {
+            for (size_t j = 0; j < 3; j++)
+            {
+                min.v[j] = std::min(min.v[j], points[i].v[j]);
+                max.v[j] = std::max(max.v[j], points[i].v[j]);
+            }
+        }
+    
+    min = a_Transform.TransformPoint(min);
+    max = a_Transform.TransformPoint(max);
+
+    __m128 bbmin, bbmax;
+
+    bbmin = _mm_min_ps(f4min, f4max);
+    bbmax = _mm_max_ps(f4min, f4max);
+
+    m_Box->SetExtents(bbmin, bbmax);
 }
 
-Hitable* Triangle::Intersect(Ray& a_Ray, float& a_Dist)
+
+Intersection Triangle::Intersect(Ray& a_Ray, float& a_Dist)
 {
     float denom = dot(a_Ray.m_Direction, m_Normal);
     float dist = std::numeric_limits<float>::lowest();
+
+    Intersection hitIntersection;
 
     if (fabs(denom) > 1e-6)
     {
@@ -58,12 +87,12 @@ Hitable* Triangle::Intersect(Ray& a_Ray, float& a_Dist)
         // if behind ray origin or further from the closest found intersection
         if (dist < 0 || dist > a_Dist)
         {
-            return nullptr;
+            return hitIntersection;
         }
     }
     else
     {
-        return nullptr;
+        return hitIntersection;
     }
 
     float3 planeIntersection = a_Ray.m_Origin + a_Ray.m_Direction * dist;
@@ -92,12 +121,13 @@ Hitable* Triangle::Intersect(Ray& a_Ray, float& a_Dist)
     if (d1 < 0 && d2 < 0 && d3 < 0)
     {
         a_Dist = dist;
-        return this;
+        hitIntersection.m_Hit = this;
+        return hitIntersection;
     }
-    return nullptr;
+    return hitIntersection;
 }
 
 bool Triangle::ShadowRayIntersect(Ray& a_Ray, float a_MaxDist)
 {
-    return Intersect(a_Ray, a_MaxDist) != nullptr;
+    return Intersect(a_Ray, a_MaxDist).m_Hit != nullptr;
 }

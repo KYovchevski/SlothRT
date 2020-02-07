@@ -13,9 +13,9 @@ public:
 
     float3 GetDataAtIntersection(float3 a_IntersectionPoint) override;
 
+    void CalculateBoundingBox(mat4 a_Transform) override;
 
-    void CalculateBoundingBox() override;
-    Hitable* Intersect(Ray& a_Ray, float& a_Dist) override final;
+    Intersection Intersect(Ray& a_Ray, float& a_Dist) override final;
     bool ShadowRayIntersect(Ray& a_Ray, float a_MaxDist) override;
 
 private:

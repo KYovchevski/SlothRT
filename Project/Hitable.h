@@ -6,24 +6,44 @@
 struct Ray;
 
 class BVHNode;
+class Hitable;
+
+struct Intersection
+{
+    Intersection() : m_Hit(nullptr), m_Transform(nullptr), m_InverseTransform(nullptr) {}
+    Hitable* m_Hit;
+    const mat4* m_Transform;
+    const mat4* m_InverseTransform;
+
+    Intersection& operator=(Intersection& a_Other)
+    {
+        m_Hit = a_Other.m_Hit;
+        m_Transform = a_Other.m_Transform;
+        m_InverseTransform = a_Other.m_InverseTransform;
+
+        return *this;
+    }
+};
 
 class Hitable
 {
 public:
     Hitable();
-
     virtual void SetParent(BVHNode* a_Parent) {};
 
-    virtual Hitable* Intersect(Ray& a_Ray, float& a_Dist) = 0;
+    virtual Intersection Intersect(Ray& a_Ray, float& a_Dist) = 0;
     virtual bool ShadowRayIntersect(Ray& a_Ray, float a_MaxDist) = 0;
 
-    virtual void CalculateBoundingBox() = 0;
+    void CalculateBoundingBox() { CalculateBoundingBox(m_Transform); };
+    virtual void CalculateBoundingBox(mat4 a_Transform) = 0;
 
     virtual Color GetColor() const = 0;
 
     const AxisAllignedBox* GetBoundingBox() const { return m_Box.get(); }
 
     virtual float3 GetDataAtIntersection(float3 a_IntersectionPoint);
+
+    virtual void SetTransform(mat4 a_Transform) { m_Transform = a_Transform; m_InverseTransform = m_Transform.Inverted(); };
 
     mat4 GetTransform() const { return m_Transform; };
     mat4 GetInverseTransform() const { return m_InverseTransform; }
@@ -40,6 +60,7 @@ protected:
 inline Hitable::Hitable()
     : m_Transform(mat4::Identity())
     , m_InverseTransform(mat4::Identity())
+    , m_Box(std::make_unique<AxisAllignedBox>())
 {
     
 }

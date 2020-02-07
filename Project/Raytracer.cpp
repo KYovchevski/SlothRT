@@ -1,8 +1,10 @@
 #include "precomp.h"
 #include "Raytracer.h"
 #include "Triangle.h"
+#include "MeshInstance.h"
 
-const Mesh* m = nullptr;
+static MeshInstance* m = nullptr;
+static MeshInstance* m1 = nullptr;
 
 Raytracer::Raytracer(unsigned short a_Width, unsigned short a_Height)
     : m_Width(a_Width)
@@ -54,11 +56,15 @@ Raytracer::Raytracer(unsigned short a_Width, unsigned short a_Height)
     triangle->SetColor(c);
     //m_Scene.AddHitable(*triangle);
 
-    m = m_MeshLoader.LoadMesh("assets/Quacker/Duck.gltf", mat4::Scale(1.0f));
+    Mesh* mesh = m_MeshLoader.LoadMesh("assets/Quacker/Duck.gltf", mat4::Scale(1.0f));
+
+    m = new MeshInstance(*mesh);
+    m1 = new MeshInstance(*mesh);
     //m->m_BVHRoot->SetTransform(mat4::Translate(make_float3(1000000.0f, 0.0f, 0.0f)));
 
 
-    m_Scene.AddHitable(*m->m_BVHRoot.get());
+    m_Scene.AddHitable(*m);
+    m_Scene.AddHitable(*m1);
 
     m_Scene.ConstructBvh();
 
@@ -72,7 +78,9 @@ void Raytracer::Render()
 
     rot += 10.0f;
 
-    m->m_BVHRoot->SetTransform(mat4::Rotate(0.0f, 1.0f, 0.0f,rot / 180.0f * 3.14159f));
+    m->SetTransform(mat4::Translate(-100.0f, 0.0f, 0.0f) * mat4::Rotate(0.0f, 1.0f, 0.0f,rot / 180.0f * 3.14159f));
+            //                         100
+    m1->SetTransform(mat4::Translate(100.0f, 0.0f, 0.0f) * mat4::Rotate(0.0f, 1.0f, 0.0f, (180.0f - rot) / 180.0f * 3.14159f));
 
     float fov = 45.0f; // degrees
     float tgfov = std::tan(fov / 180.0f * 3.14159f);
@@ -86,16 +94,12 @@ void Raytracer::Render()
         {
             Color* pixel = &m_Data[y * m_Width + x];
 
-            
-
             float3 dir = float3{ static_cast<float>(x - m_Width / 2), static_cast<float>(m_Height / 2 - y), -dist };
             dir = normalize(dir);
 
             Ray ray(m_CamPos, dir);
 
-            *pixel = m_Scene.TraceRay(ray);
-
-            
+            *pixel = m_Scene.TraceRay(ray);            
         }
     }
 

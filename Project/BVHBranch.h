@@ -12,9 +12,9 @@ public:
 
     bool Refit() override;
 
-    void CalculateBoundingBox() override;
+    void CalculateBoundingBox(mat4 a_Transform) override;
 
-    Hitable* Intersect(Ray& a_Ray, float& a_Dist) override;
+    Intersection Intersect(Ray& a_Ray, float& a_Dist) override;
     bool ShadowRayIntersect(Ray& a_Ray, float a_MaxDist) override;
 
     Color GetColor() const override { return Color(255, 255, 255); };

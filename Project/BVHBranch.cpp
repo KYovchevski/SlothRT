@@ -37,11 +37,6 @@ void BVHBranch::Construct(std::vector<Hitable*> a_Hitables)
         {
             mat4 transform = hitable->GetTransform();
 
-            if (transform != mat4::Identity())
-            {
-                std::cout << "l" << std::endl;
-            }
-
             float3 point = transform.TransformPoint(boxPoints[j]);
             for (size_t i = 0; i < 3; i++)
             {
@@ -92,6 +87,8 @@ void BVHBranch::Construct(std::vector<Hitable*> a_Hitables)
 
     m_Left->Construct(left);
     m_Right->Construct(right);
+
+    Hitable::CalculateBoundingBox();
 }
 
 void BVHBranch::Construct(std::vector<std::unique_ptr<Hitable>>& a_Hitables)
@@ -140,13 +137,16 @@ bool BVHBranch::Refit()
     return false;
 }
 
-void BVHBranch::CalculateBoundingBox()
+void BVHBranch::CalculateBoundingBox(mat4 a_Transform)
 {
     union
     {
         struct
         {
-            float3 newMin, newMax;
+            float3 newMin;
+            float padding;
+            float3 newMax;
+            float padding1;
         };
         struct
         {
@@ -157,21 +157,24 @@ void BVHBranch::CalculateBoundingBox()
     newF4Min = _mm_min_ps(m_Left->GetBoundingBox()->GetF4MinExtent(), m_Right->GetBoundingBox()->GetF4MinExtent());
     newF4Max = _mm_max_ps(m_Left->GetBoundingBox()->GetF4MaxExtent(), m_Right->GetBoundingBox()->GetF4MaxExtent());
 
-    newMin = m_Transform.TransformPoint(newMin);
-    newMax = m_Transform.TransformPoint(newMax);
+    newMin = a_Transform.TransformPoint(newMin);
+    newMax = a_Transform.TransformPoint(newMax);
 
+    __m128 bbmin, bbmax;
+    bbmin = _mm_min_ps(newF4Min, newF4Max);
+    bbmax = _mm_max_ps(newF4Min, newF4Max);
 
-    m_Box->SetExtents(newF4Min, newF4Max);
+    m_Box->SetExtents(bbmin, bbmax);
 }
 
-Hitable* BVHBranch::Intersect(Ray& a_Ray, float& a_Dist)
+Intersection BVHBranch::Intersect(Ray& a_Ray, float& a_Dist)
 {
     Ray leftRay = a_Ray;
     Ray rightRay = a_Ray;
 
 
-    leftRay.Transform(m_Left->GetInverseTransform());
-    rightRay.Transform(m_Right->GetInverseTransform());
+    //leftRay.Transform(m_Left->GetInverseTransform());
+    //rightRay.Transform(m_Right->GetInverseTransform());
     float leftDist = std::numeric_limits<float>::max();
     bool leftHit  = m_Left->GetBoundingBox()->Intersect(leftRay, leftDist);
 
@@ -180,21 +183,21 @@ Hitable* BVHBranch::Intersect(Ray& a_Ray, float& a_Dist)
     bool rightHit = m_Right->GetBoundingBox()->Intersect(rightRay, rightDist);
 
 
-    Hitable* hit = nullptr;
+    Intersection hit;
 
     switch (leftHit + rightHit)
     {
     case 2:
     {
         float dist1 = a_Dist, dist2 = a_Dist;
-        Hitable* hit1 = nullptr, * hit2 = nullptr;
+        Intersection hit1, hit2;
 
         hit1 = m_Left->Intersect(leftRay, dist1);
         hit2 = m_Right->Intersect(rightRay, dist2);
 
         if (dist1 < dist2)
         {
-            if (hit1)
+            if (hit1.m_Hit)
             {
                 hit = hit1;
                 a_Dist = dist1;
@@ -202,7 +205,7 @@ Hitable* BVHBranch::Intersect(Ray& a_Ray, float& a_Dist)
         }
         else
         {
-            if (hit2)
+            if (hit2.m_Hit)
             {
                 hit = hit2;
                 a_Dist = dist2;
@@ -242,8 +245,8 @@ bool BVHBranch::ShadowRayIntersect(Ray& a_Ray, float a_MaxDist)
     Ray rightRay = a_Ray;
 
 
-    leftRay.Transform(m_Left->GetInverseTransform());
-    rightRay.Transform(m_Right->GetInverseTransform());
+    //leftRay.Transform(m_Left->GetInverseTransform());
+    //rightRay.Transform(m_Right->GetInverseTransform());
 
     float leftDist = std::numeric_limits<float>::max();
     float rightDist = std::numeric_limits<float>::max();

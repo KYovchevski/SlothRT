@@ -151,6 +151,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">precomp.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="Light.cpp" />
+    <ClCompile Include="MeshInstance.cpp" />
     <ClCompile Include="ModelLoader.cpp" />
     <ClCompile Include="Raytracer.cpp" />
     <ClCompile Include="Scene.cpp" />
@@ -169,6 +170,7 @@
     <ClInclude Include="Hitable.h" />
     <ClInclude Include="lib\imgui\imgui.h" />
     <ClInclude Include="Light.h" />
+    <ClInclude Include="MeshInstance.h" />
     <ClInclude Include="ModelLoader.h" />
     <ClInclude Include="precomp.h" />
     <ClInclude Include="Raytracer.h" />
