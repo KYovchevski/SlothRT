@@ -26,13 +26,17 @@ private:
     float3 m_CamPos;
 
     std::map<int, int> m_KeyStates;
+    bool m_MPressed;
 
     std::chrono::high_resolution_clock::time_point m_LastFrame;
 
     ModelLoader m_MeshLoader;
 
     Scene m_Scene;
-
+    union{
+        uint m_RenderModeIndex;
+        EMode m_RenderMode;
+    };
     const unsigned short m_Width;
     const unsigned short m_Height;
 

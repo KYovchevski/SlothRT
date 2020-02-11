@@ -4,7 +4,9 @@
 #include "BVHBranch.h"
 #include "BVHLeaf.h"
 
-Color Scene::TraceRay(Ray& a_Ray)
+static unsigned int tmp = 0;
+
+TraceInfo Scene::TraceRay(Ray& a_Ray, EMode a_Mode)
 {
 
     Color pixel;
@@ -15,48 +17,79 @@ Color Scene::TraceRay(Ray& a_Ray)
     float3 origin = a_Ray.m_Origin;
     float dist = std::numeric_limits<float>::max();
 
+    TraceInfo info;
     Intersection hit = CastRay(a_Ray, dist);
 
-    if (hit.m_Hit)
+    switch (a_Mode)
     {
-        float3 hitPoint = a_Ray.m_Origin + a_Ray.m_Direction * dist;
+    //case EMode::EColor:
+    case EMode::ENormals:
 
-        float3 normal = hit.m_Hit->GetDataAtIntersection(hitPoint);
-
-        if (hit.m_InverseTransform != nullptr)
+        if (hit.m_Hit)
         {
-            normal = hit.m_InverseTransform->Transposed().TransformPoint(normal);            
+            float3 hitPoint = a_Ray.m_Origin + a_Ray.m_Direction * dist;
+
+            float3 normal = hit.m_Hit->GetDataAtIntersection(hitPoint);
+
+            if (hit.m_InverseTransform != nullptr)
+            {
+                normal = hit.m_InverseTransform->Transposed().TransformPoint(normal);
+            }
+
+            pixel.r = static_cast<uint8_t>((normal.x * 0.5f + 0.5f) * 255.0f);
+            pixel.g = static_cast<uint8_t>((normal.y * 0.5f + 0.5f) * 255.0f);
+            pixel.b = static_cast<uint8_t>((normal.z * 0.5f + 0.5f) * 255.0f);
+            pixel.a = 255;
+
+            Ray shadowRay = m_Lights[0]->GetShadowRay(hitPoint);
+
+            float shadowRayDist = length(m_Lights[0]->GetPosition() - shadowRay.m_Origin);
+            float ndotl = 0.0f;
+            if (!CastShadowRay(shadowRay, shadowRayDist))
+            {
+                ndotl = clamp(dot(normal, shadowRay.m_Direction), 0.0f, 1.0f);
+            }
+
+            pixel.r *= ndotl;
+            pixel.g *= ndotl;
+            pixel.b *= ndotl;
+
+        }
+        else
+        {
+            pixel.rgb[0] = 255;
+            pixel.rgb[1] = 255;
+            pixel.rgb[2] = 255;
+            pixel.rgb[3] = 0;
+
         }
 
-        pixel.r = static_cast<uint8_t>((normal.x * 0.5f + 0.5f) * 255.0f);
-        pixel.g = static_cast<uint8_t>((normal.y * 0.5f + 0.5f) * 255.0f);
-        pixel.b = static_cast<uint8_t>((normal.z * 0.5f + 0.5f) * 255.0f);
-        pixel.a = 255;
+        info.m_Intersection = hit;
+        info.m_Color = pixel;
 
-        Ray shadowRay = m_Lights[0]->GetShadowRay(hitPoint);
+        return info;
 
-        float shadowRayDist = length(m_Lights[0]->GetPosition() - shadowRay.m_Origin);
-        float ndotl = 0.0f;
-        if (!CastShadowRay(shadowRay, shadowRayDist))
+    case EMode::EBVHTests:
+
+        if (tmp < hit.m_NumBVHChecks)
         {
-            ndotl = clamp(dot(normal, shadowRay.m_Direction), 0.0f, 1.0f);
+            tmp = hit.m_NumBVHChecks;
+            std::cout << tmp << std::endl;
         }
 
-        pixel.r *= ndotl;
-        pixel.g *= ndotl;
-        pixel.b *= ndotl;
+        uint8_t num = (hit.m_NumBVHChecks / 200000.0f) * 255;
+        pixel.r = num;
+        pixel.g = 255 - num;
+        pixel.b = 0;
+
+        info.m_Intersection = hit;
+        info.m_Color = pixel;
+
+        return info;
 
     }
-    else
-    {
-        pixel.rgb[0] = 255;
-        pixel.rgb[1] = 255;
-        pixel.rgb[2] = 255;
-        pixel.rgb[3] = 0;
-            
-    }
 
-    return pixel;
+
 }
 
 Intersection Scene::CastRay(Ray& a_Ray, float& a_Dist)

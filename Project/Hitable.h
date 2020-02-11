@@ -10,16 +10,22 @@ class Hitable;
 
 struct Intersection
 {
-    Intersection() : m_Hit(nullptr), m_Transform(nullptr), m_InverseTransform(nullptr) {}
+    Intersection()
+        : m_Hit(nullptr)
+        , m_Transform(nullptr)
+        , m_InverseTransform(nullptr)
+        , m_NumBVHChecks(0){}
     Hitable* m_Hit;
     const mat4* m_Transform;
     const mat4* m_InverseTransform;
+    unsigned int m_NumBVHChecks;
 
     Intersection& operator=(Intersection& a_Other)
     {
         m_Hit = a_Other.m_Hit;
         m_Transform = a_Other.m_Transform;
         m_InverseTransform = a_Other.m_InverseTransform;
+        m_NumBVHChecks = a_Other.m_NumBVHChecks;
 
         return *this;
     }

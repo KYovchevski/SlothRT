@@ -1,2 +1,13 @@
-﻿  Raytracer.cpp
+﻿  BVHLeaf.cpp
+  Raytracer.cpp
+  Scene.cpp
+D:\RandomCode\SlothRT\SlothRT\Project\Scene.cpp(53,29): warning C4244:  '*=': conversion from 'float' to 'uint8_t', possible loss of data
+D:\RandomCode\SlothRT\SlothRT\Project\Scene.cpp(54,29): warning C4244:  '*=': conversion from 'float' to 'uint8_t', possible loss of data
+D:\RandomCode\SlothRT\SlothRT\Project\Scene.cpp(55,29): warning C4244:  '*=': conversion from 'float' to 'uint8_t', possible loss of data
+  game.cpp
+  Generating Code...
+D:\RandomCode\SlothRT\SlothRT\Project\Scene.cpp(80,21): warning C4244:  'initializing': conversion from 'float' to 'uint8_t', possible loss of data
+D:\RandomCode\SlothRT\SlothRT\Project\Scene.cpp(93): warning C4715:  'Scene::TraceRay': not all control paths return a value
+  LINK : D:\RandomCode\SlothRT\SlothRT\Project\x64\Tmpl8_2020-01_debug.exe not found or not built by the last incremental link; performing full link
+     Creating library D:\RandomCode\SlothRT\SlothRT\Project\x64\Tmpl8_2020-01_debug.lib and object D:\RandomCode\SlothRT\SlothRT\Project\x64\Tmpl8_2020-01_debug.exp
   tmpl_2020-01.vcxproj -> D:\RandomCode\SlothRT\SlothRT\Project\x64\Tmpl8_2020-01_debug.exe

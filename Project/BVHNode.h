@@ -22,7 +22,7 @@ public:
 
     virtual bool Refit() = 0;
 
-    void SetTransform(mat4 a_Transform);
+    void SetTransform(mat4 a_Transform) override;
 
 protected:
     BVHNode* m_Parent;

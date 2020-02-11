@@ -5,7 +5,7 @@ AxisAllignedBox::AxisAllignedBox(float3 a_Min, float3 a_Max)
     : m_Min(a_Min)
     , m_Max(a_Max)
 {
-    m_F4Center = _mm_add_ps(m_F4Min, m_F4Min);
+    m_F4Center =  _mm_mul_ps(_mm_add_ps(m_F4Min, m_F4Min), _mm_set_ps(0.5f, 0.5f, 0.5f, 0.5f));
     m_Center /= 2.0f;
 }
 

@@ -64,14 +64,39 @@ void BVHBranch::Construct(std::vector<Hitable*> a_Hitables)
             return a_Left->GetBoundingBox()->GetCenter().v[largestDimension] < a_Right->GetBoundingBox()->GetCenter().v[largestDimension];
         });
 
+    float median = (min.v[largestDimension] + max.v[largestDimension]) / 2.0f;
+
     std::vector<Hitable*> left, right;
 
     for (size_t i = 0; i < a_Hitables.size(); i++)
     {
+        //auto hit = a_Hitables[i];
+        //
+        //if (hit->GetBoundingBox()->GetCenter().v[largestDimension] > median)
+        //{
+        //    left.push_back(a_Hitables[i]);
+        //}
+        //else
+        //{
+        //    right.push_back(a_Hitables[i]);
+        //}
+
+        
         if (i < a_Hitables.size() / 2)
             left.push_back(a_Hitables[i]);
         else
             right.push_back(a_Hitables[i]);
+    }
+
+    if (left.empty() && right.size() > 1)
+    {
+        left.push_back(right.back());
+        right.pop_back();
+    }
+    else if (right.empty() && left.size() > 1)
+    {
+        right.push_back(left.back());
+        left.pop_back();
     }
 
     if (left.size() > g_NumHitablesPerNode)
@@ -106,7 +131,14 @@ void BVHBranch::Construct(std::vector<std::unique_ptr<Hitable>>& a_Hitables)
 bool BVHBranch::Refit()
 {
     __m128& currMin = m_Box->GetF4MinExtent(), & currMax = m_Box->GetF4MaxExtent();
-    __m128 newMin = currMin, newMax = currMax;
+    //__m128 newMin = currMin, newMax = currMax;
+
+
+    const float fmin = std::numeric_limits<float>::lowest();
+    const float fmax = std::numeric_limits<float>::max();
+    __m128 newMin = _mm_set_ps(fmax, fmax, fmax, fmax);
+    __m128 newMax = _mm_set_ps(fmin, fmin, fmin, fmin);
+
     
     newMin = _mm_min_ps(newMin, m_Left->GetBoundingBox()->GetF4MinExtent());
     newMax = _mm_max_ps(newMax, m_Left->GetBoundingBox()->GetF4MaxExtent());
@@ -182,6 +214,7 @@ Intersection BVHBranch::Intersect(Ray& a_Ray, float& a_Dist)
     float rightDist = std::numeric_limits<float>::max();
     bool rightHit = m_Right->GetBoundingBox()->Intersect(rightRay, rightDist);
 
+    int intersectionTests = 0;
 
     Intersection hit;
 
@@ -192,8 +225,28 @@ Intersection BVHBranch::Intersect(Ray& a_Ray, float& a_Dist)
         float dist1 = a_Dist, dist2 = a_Dist;
         Intersection hit1, hit2;
 
-        hit1 = m_Left->Intersect(leftRay, dist1);
-        hit2 = m_Right->Intersect(rightRay, dist2);
+        if (leftDist < rightDist)
+        {
+            hit1 = m_Left->Intersect(leftRay, dist1);
+            intersectionTests += hit1.m_NumBVHChecks;
+            if (dist1 > rightDist)
+            {
+                hit2 = m_Right->Intersect(rightRay, dist2);
+                intersectionTests += hit1.m_NumBVHChecks;
+
+            }
+        }
+        else
+        {
+            hit2 = m_Right->Intersect(rightRay, dist2);
+            intersectionTests += hit1.m_NumBVHChecks;
+            if (dist2 > leftDist)
+            {
+                hit1 = m_Left->Intersect(leftRay, dist1);
+                intersectionTests += hit1.m_NumBVHChecks;
+
+            }
+        }
 
         if (dist1 < dist2)
         {
@@ -218,10 +271,14 @@ Intersection BVHBranch::Intersect(Ray& a_Ray, float& a_Dist)
         if (leftHit)
         {
             hit = m_Left->Intersect(leftRay, a_Dist);
+            intersectionTests += hit.m_NumBVHChecks;
+
         }
         else
         {
             hit = m_Right->Intersect(rightRay, a_Dist);
+            intersectionTests += hit.m_NumBVHChecks;
+
         }
 
 
@@ -233,6 +290,10 @@ Intersection BVHBranch::Intersect(Ray& a_Ray, float& a_Dist)
         abort();
     }
 
+    //if (hit.m_Hit)
+    {
+        hit.m_NumBVHChecks += intersectionTests;
+    }
 
     return hit;
 

@@ -1,6 +1,8 @@
 #include "precomp.h"
 #include "BVHLeaf.h"
 
+#include "immintrin.h"
+
 BVHLeaf::BVHLeaf(BVHNode* a_Parent)
     : BVHNode(a_Parent)
     
@@ -80,18 +82,32 @@ void BVHLeaf::CalculateBoundingBox(mat4 a_Transform)
 bool BVHLeaf::Refit()
 {
     __m128 &currMin = m_Box->GetF4MinExtent(), &currMax = m_Box->GetF4MaxExtent();
-    __m128 newMin = currMin, newMax = currMax;
+    //__m128 newMin = currMin, newMax = currMax;
+    const float fmin = std::numeric_limits<float>::lowest();
+    const float fmax = std::numeric_limits<float>::max();
+    __m128 newMin = _mm_set_ps(fmax, fmax, fmax, fmax);
+    __m128 newMax = _mm_set_ps(fmin, fmin, fmin, fmin);
 
     for (Hitable* hitable : m_Hitables)
     {
-        newMin = _mm_min_ps(newMin, hitable->GetBoundingBox()->GetF4MinExtent());
-        newMax = _mm_max_ps(newMax, hitable->GetBoundingBox()->GetF4MaxExtent());
+        __m128 bbmin = hitable->GetBoundingBox()->GetF4MinExtent();
+        __m128 bbmax = hitable->GetBoundingBox()->GetF4MaxExtent();
+
+
+        //for (size_t i = 0; i < 8; i++)
+        //{
+            newMin = _mm_min_ps(bbmin,bbmax);
+            newMax = _mm_max_ps(bbmin, bbmax);
+            //}                     
     }
 
+
     bool toRefit = false;
+    __m128 resMin = _mm_cmp_ps(newMin, currMin, _CMP_NEQ_OQ);
+    __m128 resMax = _mm_cmp_ps(newMax, currMax, _CMP_NEQ_OQ);
     for (size_t i = 0; i < 3; i++)
     {
-        if (newMin.m128_f32[i] != currMin.m128_f32[i] || newMax.m128_f32[i] != currMax.m128_f32[i])
+        if (resMin.m128_i32[i] || resMax.m128_i32[i])
         {
             toRefit = true;
             break;
@@ -112,17 +128,25 @@ Intersection BVHLeaf::Intersect(Ray& a_Ray, float& a_Dist)
 {
     Intersection hit;
 
+    int intersectionTests = 0;
+
     for (Hitable* hitable : m_Hitables)
     {
         Ray transformedRay = a_Ray;
         //transformedRay.Transform(hitable->GetInverseTransform());
         Intersection newHit = hitable->Intersect(transformedRay, a_Dist);
-
+        intersectionTests++;
         if (newHit.m_Hit)
         {
             hit = newHit;
         }
     }
+
+    //if (hit.m_Hit)
+    {
+        hit.m_NumBVHChecks += intersectionTests;
+    }
+
 
     return hit;
 }

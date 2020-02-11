@@ -11,6 +11,8 @@ Raytracer::Raytracer(unsigned short a_Width, unsigned short a_Height)
     , m_Height(a_Height)
     , m_CamPos({ 0.0f, 0.0f, 0.0f + 500.0f })
 {
+    m_RenderMode = EMode::ENormals;
+    
     m_Data = new Color[static_cast<int>(m_Width) * static_cast<int>(m_Height)];
 
     m_Surface = new Surface(m_Width, m_Height, &m_Data->pix, m_Width);
@@ -49,7 +51,7 @@ Raytracer::Raytracer(unsigned short a_Width, unsigned short a_Height)
     c.rgb[2] = 255;
     c.rgb[3] = 0;
 
-    Light* l = new Light(make_float3(300.0f, 300.0f, 300.0f), 100.0f);
+    Light* l = new Light(make_float3(300.0f, 300.0f, 100.0f), 100.0f);
 
     m_Scene.AddLight(*l);
 
@@ -71,16 +73,38 @@ Raytracer::Raytracer(unsigned short a_Width, unsigned short a_Height)
     m_LastFrame = std::chrono::high_resolution_clock::now();
 }
 
+static int frame = 0;
+static float timer = 0.0f;
 static float rot = 0.0f;
 void Raytracer::Render()
 {
     ProcessInput();
 
-    rot += 10.0f;
+    frame++;
+    auto currentFrame = std::chrono::high_resolution_clock::now();
 
-    m->SetTransform(mat4::Translate(-100.0f, 0.0f, 0.0f) * mat4::Rotate(0.0f, 1.0f, 0.0f,rot / 180.0f * 3.14159f));
-            //                         100
+    auto delta = std::chrono::duration_cast<std::chrono::milliseconds>(currentFrame - m_LastFrame);
+
+    //std::cout << delta.count() << std::endl;
+
+    m_LastFrame = currentFrame;
+
+
+    timer += delta.count() / 1000.0f;
+
+    if (timer > 1.0f)
+    {
+        timer -= 1.0f;
+        std::cout << "Rough FPS: " << frame << std::endl;
+        frame = 0;
+    }
+
+
+    rot += 60.0f * (delta.count() / 1000.0f);
+
     m1->SetTransform(mat4::Translate(100.0f, 0.0f, 0.0f) * mat4::Rotate(0.0f, 1.0f, 0.0f, (180.0f - rot) / 180.0f * 3.14159f));
+            //                         100
+    m->SetTransform(mat4::Translate(-100.0f, 0.0f, 0.0f) * mat4::Rotate(0.0f, 1.0f, 0.0f,rot / 180.0f * 3.14159f));
 
     float fov = 45.0f; // degrees
     float tgfov = std::tan(fov / 180.0f * 3.14159f);
@@ -88,9 +112,9 @@ void Raytracer::Render()
     float dist;
 
     dist = tgfov * m_Width;
-    for (unsigned short x = 0; x < m_Width; ++x)
+    for (unsigned short y = 0; y < m_Height; y++)
     {
-        for (unsigned short  y = 0; y < m_Height; y++)
+        for (unsigned short x = 0; x < m_Width; ++x)
         {
             Color* pixel = &m_Data[y * m_Width + x];
 
@@ -99,17 +123,9 @@ void Raytracer::Render()
 
             Ray ray(m_CamPos, dir);
 
-            *pixel = m_Scene.TraceRay(ray);            
+            *pixel = m_Scene.TraceRay(ray, m_RenderMode).m_Color;            
         }
     }
-
-    auto currentFrame = std::chrono::high_resolution_clock::now();
-
-    auto delta = std::chrono::duration_cast<std::chrono::milliseconds>(currentFrame - m_LastFrame);
-
-    std::cout << delta.count() << std::endl;
-
-    m_LastFrame = currentFrame;
 }
 
 void Raytracer::Present(Surface* a_Screen)
@@ -132,7 +148,8 @@ void Raytracer::DebugRay(float2 a_ScreenPos)
 
     Ray ray(m_CamPos, dir);
 
-    m_Scene.TraceRay(ray);
+    auto i = m_Scene.TraceRay(ray, m_RenderMode);
+    std::cout << i.m_Intersection.m_NumBVHChecks << std::endl;
 }
 
 void Raytracer::ProcessInput()
@@ -163,4 +180,11 @@ void Raytracer::ProcessInput()
     {
         m_CamPos += float3{ 0.0f, 1.0f, 0.0f };
     }
+
+    if (IsKeyPressed(GLFW_KEY_M) && !m_MPressed)
+    {
+        m_RenderModeIndex += 1;
+        m_RenderModeIndex %= EMode::ECount;
+    }
+    m_MPressed = IsKeyPressed(GLFW_KEY_M);
 }

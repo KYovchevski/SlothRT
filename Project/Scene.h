@@ -3,10 +3,25 @@
 #include "BVHNode.h"
 #include "Light.h"
 
+struct TraceInfo
+{
+    Intersection m_Intersection;
+    Color m_Color;
+};
+
+enum EMode
+{
+    //EColor,
+    ENormals,
+    EBVHTests,
+
+    ECount
+};
+
 class Scene
 {
 public:
-    Color TraceRay(Ray& a_Ray);
+    TraceInfo TraceRay(Ray& a_Ray, EMode a_Mode);
     Intersection CastRay(Ray& a_Ray, float& a_Dist);
     bool CastShadowRay(Ray& a_Ray, float a_MaxDist);
 

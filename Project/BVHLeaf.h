@@ -12,7 +12,7 @@ public:
 
     void CalculateBoundingBox(mat4 a_Transform) override;
 
-    bool Refit();
+    bool Refit() override;
 
     Intersection Intersect(Ray& a_Ray, float& a_Dist) override;
     bool ShadowRayIntersect(Ray& a_Ray, float a_MaxDist) override;
